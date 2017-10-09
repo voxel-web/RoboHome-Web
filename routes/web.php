@@ -1,29 +1,10 @@
 <?php
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
-
 Route::get('/', function () {
-    return view('welcome');
+    return view('home');
 });
 
-//https://stackoverflow.com/questions/39196968/laravel-5-3-new-authroutes
 Auth::routes();
-
-Route::get('/home', 'HomeController@index')->name('home');
-
-
-Route::get('/', 'Web\LoginController@index')->name('index');
-Route::get('/login', 'Web\LoginController@login')->name('login');
-Route::get('/logout', 'Web\LoginController@logout')->name('logout');
 
 Route::get('/devices', 'Web\DevicesController@devices')->name('devices');
 Route::post('/devices/add', 'Web\DevicesController@add')->name('addDevice');
