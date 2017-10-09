@@ -12,6 +12,7 @@ use App\User;
 use DB;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
 class DevicesController extends Controller
@@ -23,7 +24,7 @@ class DevicesController extends Controller
 
     public function __construct(Device $deviceModel, RFDevice $rfDeviceModel, User $userModel, MessagePublisher $messagePublisher)
     {
-        $this->middleware('authenticated');
+        $this->middleware('auth');
 
         $this->deviceModel = $deviceModel;
         $this->rfDeviceModel = $rfDeviceModel;
@@ -61,13 +62,13 @@ class DevicesController extends Controller
 
     public function delete(Request $request, int $id): RedirectResponse
     {
-        $doesUserOwnDevice = $this->currentUser()->doesUserOwnDevice($id);
-
-        if (!$doesUserOwnDevice) {
-            $request->session()->flash(FlashMessageLevels::DANGER, 'Error deleting device!');
-
-            return redirect()->route('devices');
-        }
+//        $doesUserOwnDevice = $this->currentUser()->doesUserOwnDevice($id);
+//
+//        if (!$doesUserOwnDevice) {
+//            $request->session()->flash(FlashMessageLevels::DANGER, 'Error deleting device!');
+//
+//            return redirect()->route('devices');
+//        }
 
         $name = $this->deviceModel->find($id)->name;
 
@@ -80,13 +81,13 @@ class DevicesController extends Controller
 
     public function update(Request $request, int $id): RedirectResponse
     {
-        $doesUserOwnDevice = $this->currentUser()->doesUserOwnDevice($id);
-
-        if (!$doesUserOwnDevice) {
-            $request->session()->flash(FlashMessageLevels::DANGER, 'Error updating device!');
-
-            return redirect()->route('devices');
-        }
+//        $doesUserOwnDevice = $this->currentUser()->doesUserOwnDevice($id);
+//
+//        if (!$doesUserOwnDevice) {
+//            $request->session()->flash(FlashMessageLevels::DANGER, 'Error updating device!');
+//
+//            return redirect()->route('devices');
+//        }
 
         $device = $this->deviceModel->find($id);
 
@@ -105,13 +106,13 @@ class DevicesController extends Controller
     public function handleControlRequest(Request $request, string $action, int $deviceId): RedirectResponse
     {
         $currentUser = $this->currentUser();
-        $doesUserOwnDevice = $currentUser->doesUserOwnDevice($deviceId);
-
-        if (!$doesUserOwnDevice) {
-            $request->session()->flash(FlashMessageLevels::DANGER, 'Error controlling device!');
-
-            return redirect()->route('devices');
-        }
+//        $doesUserOwnDevice = $currentUser->doesUserOwnDevice($deviceId);
+//
+//        if (!$doesUserOwnDevice) {
+//            $request->session()->flash(FlashMessageLevels::DANGER, 'Error controlling device!');
+//
+//            return redirect()->route('devices');
+//        }
 
         $this->messagePublisher->publish($currentUser->user_id, $action, $deviceId);
 
@@ -120,8 +121,7 @@ class DevicesController extends Controller
 
     private function currentUser(): User
     {
-        $userId = session(env('SESSION_USER_ID'));
-        $currentUser = $this->userModel->where('user_id', $userId)->first();
+        $currentUser = Auth::user();
 
         return $currentUser;
     }
