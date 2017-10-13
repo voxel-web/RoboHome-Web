@@ -9,23 +9,39 @@
          processIsolation="false"
          stopOnFailure="false">
     <testsuites>
-        <testsuite name="Feature">
-            <directory suffix="Test.php">./tests/Feature</directory>
+        <testsuite name="Application Test Suite">
+            <directory suffix="Test.php">./tests</directory>
         </testsuite>
-
-        <testsuite name="Unit">
-            <directory suffix="Test.php">./tests/Unit</directory>
+        <testsuite name="Unit Test Suite">
+            <directory suffix="Test.php">./tests/unit</directory>
+        </testsuite>
+        <testsuite name="Controller Test Suite">
+            <directory suffix="Test.php">./tests/unit/controller</directory>
+        </testsuite>
+        <testsuite name="Middleware Test Suite">
+            <directory suffix="Test.php">./tests/unit/middleware</directory>
+        </testsuite>
+        <testsuite name="Model Test Suite">
+            <directory suffix="Test.php">./tests/unit/model</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="true">
             <directory suffix=".php">./app</directory>
+            <exclude>
+                <directory suffix=".php">./app/Http/Wrappers</directory>
+            </exclude>
         </whitelist>
     </filter>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:5QAsRYV1WffWMfJIKoyn2ocKNR4MmVoBY3rRAEcp6C4="/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="SESSION_USER_ID" value="userId"/>
         <env name="QUEUE_DRIVER" value="sync"/>
     </php>
+    <logging>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+    </logging>
 </phpunit>
