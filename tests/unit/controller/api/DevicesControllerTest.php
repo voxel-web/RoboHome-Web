@@ -75,7 +75,7 @@ class DevicesControllerTest extends DevicesControllerTestCase
         $user = $this->givenSingleUserExistsWithNoDevicesRegisteredWithApi();
         $device = $this->mockDeviceRecord(self::$faker->word(), $user);
 
-        $this->mockMessagePublisher();
+        $this->mockMessagePublisher(1);
         $this->givenDeviceIsRegisteredToUser($device, $user->user_id);
 
         $this->callControl(DeviceActions::TURN_ON, $device->id);
@@ -86,7 +86,7 @@ class DevicesControllerTest extends DevicesControllerTestCase
         $user = $this->givenSingleUserExistsWithNoDevicesRegisteredWithApi();
         $deviceId = self::$faker->randomDigit();
 
-        $this->givenDoesUserOwnDevice($user, $deviceId, false);
+        $this->mockUserOwnsDevice($user, $deviceId, false);
 
         $response = $this->callControl(DeviceActions::TURN_ON, $deviceId);
 
@@ -110,7 +110,7 @@ class DevicesControllerTest extends DevicesControllerTestCase
         $user = $this->givenSingleUserExistsWithNoDevicesRegisteredWithApi();
         $device = $this->mockDeviceRecord(self::$faker->word(), $user);
 
-        $this->mockMessagePublisher();
+        $this->mockMessagePublisher(1);
         $this->givenDeviceIsRegisteredToUser($device, $user->user_id);
 
         $this->callControl(DeviceActions::TURN_OFF, $device->id);
@@ -121,7 +121,7 @@ class DevicesControllerTest extends DevicesControllerTestCase
         $user = $this->givenSingleUserExistsWithNoDevicesRegisteredWithApi();
         $deviceId = self::$faker->randomDigit();
 
-        $this->givenDoesUserOwnDevice($user, $deviceId, false);
+        $this->mockUserOwnsDevice($user, $deviceId, false);
 
         $response = $this->callControl(DeviceActions::TURN_OFF, $deviceId);
 
@@ -133,7 +133,7 @@ class DevicesControllerTest extends DevicesControllerTestCase
         $user = $this->givenSingleUserExists();
         $device = $this->mockDeviceRecord(self::$faker->word(), $user->user_id);
 
-        $this->givenDoesUserOwnDevice($user, $device->id, true);
+        $this->mockUserOwnsDevice($user, $device->id, true);
 
         $this->mockDeviceInformation->shouldReceive('info')->once()->andReturn(new JsonResponse());
 
@@ -152,7 +152,7 @@ class DevicesControllerTest extends DevicesControllerTestCase
         $user = $this->createUser($userId);
         $deviceId = self::$faker->randomDigit();
 
-        $this->givenDoesUserOwnDevice($user, $deviceId, false);
+        $this->mockUserOwnsDevice($user, $deviceId, false);
 
         $response = $this->postJson('/api/devices/info', [
             'userId' => $userId,
@@ -214,6 +214,52 @@ class DevicesControllerTest extends DevicesControllerTestCase
         ]);
 
         return $response;
+    }
+
+    private function givenDeviceIsRegisteredToUser(Device $device, string $userId): void
+    {
+        $collection = new Device();
+
+        $deviceCollection = $collection->newCollection([$device]);
+
+        $mockUserRecord = Mockery::mock(User::class)->makePartial();
+        $mockUserRecord->shouldReceive('getAttribute')->with('devices')->once()->andReturn($deviceCollection);
+
+        $this->mockUserTable($mockUserRecord, $userId);
+    }
+
+    private function givenSingleUserExistsWithDevices(string $device1Name, string $device2Name, string $device3Name): User
+    {
+        $userId = self::$faker->uuid();
+
+        $user = $this->createUser();
+
+        $collection = new Device();
+
+        $devices = $collection->newCollection(
+            [
+                $this->mockDeviceRecord($device1Name, $userId),
+                $this->mockDeviceRecord($device2Name, $userId),
+                $this->mockDeviceRecord($device3Name, $userId)
+            ]
+        );
+
+        $mockUserRecord = Mockery::mock(User::class)->makePartial();
+        $mockUserRecord->shouldReceive('getAttribute')->with('devices')->andReturn($devices);
+
+        $this->mockUserTable($mockUserRecord, $userId);
+
+        return $user;
+    }
+
+    private function mockUserTable(MockInterface $mockUserRecord, int $userId): void
+    {
+        $mockUserTable = Mockery::mock(User::class);
+        $mockUserTable
+            ->shouldReceive('where')->with('id', $userId)->once()->andReturn(Mockery::self())
+            ->shouldReceive('first')->once()->andReturn($mockUserRecord);
+
+        $this->app->instance(User::class, $mockUserTable);
     }
 
     private function assertDiscoverAppliancesResponseWithoutDevice(TestResponse $response): void
